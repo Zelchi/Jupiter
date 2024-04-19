@@ -1,16 +1,3 @@
-// // Captura exceções não tratadas para evitar que o bot desligue
-// process.on('uncaughtException', (error) => {
-//     console.error('Exceção não tratada capturada:', error);
-//     // Aqui você pode decidir se quer desligar o bot ou deixá-lo rodando.
-//     // É recomendável reiniciar o bot de forma controlada ou notificar alguém sobre o erro.
-// });
-
-// // Captura rejeições de promessas não tratadas para evitar que o bot desligue
-// process.on('unhandledRejection', (reason, promise) => {
-//     console.error('Rejeição de promessa não tratada capturada:', promise, 'razão:', reason);
-//     // Tratamento semelhante ao de exceções não tratadas.
-// });
-
 import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, messageLink } from "discord.js";
 import * as dotenv from "dotenv";
 import { rolar } from "./utilidades/rolagemdedados.js";
