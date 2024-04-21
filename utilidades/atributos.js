@@ -162,3 +162,82 @@ async function danoMana(message, argumentos, bancoDados) {
     await message.delete(); // Apaga a mensagem original do usuário
 }
 export { danoMana };
+
+// Cura - Energia
+async function curaEnergia(message, argumentos, bancoDados) {
+    if (argumentos.length < 1 || argumentos.length > 2 || isNaN(argumentos[argumentos.length - 1])) {
+        return message.reply("Uso incorreto");
+    }
+
+    const restaurarEnergia = Number(argumentos[argumentos.length - 1]);
+
+    const verificarUsuario = message.mentions.users.first();
+    const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
+
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        return message.reply("Você não tem permissão para curar outros usuários.");
+    }
+
+    const perfilReferencia = bancoDados.collection('perfis').doc(usuarioId);
+    const verificarPerfil = await perfilReferencia.get();
+
+    if (!verificarPerfil.exists) {
+        return message.reply("O perfil do usuário mencionado não foi encontrado ou ainda não foi criado.");
+    }
+
+    const perfil = verificarPerfil.data();
+    const energiaAtual = perfil.energia || 0;
+    const novaEnergia = Math.min(perfil.energiaMax || 100, energiaAtual + restaurarEnergia);
+
+    await perfilReferencia.update({ energia: novaEnergia });
+
+    const embed = new EmbedBuilder()
+        .setColor('#808080')
+        .setTitle('😴 Restauração de Energia')
+        .setThumbnail('https://cdn.discordapp.com/attachments/1199656699561246751/1204800802158542888/Rest.gif?ex=65d60d2f&is=65c3982f&hm=bb536fee8a2a0ddf146b5ee61138a8076fbb8f39f7399ddb8687ce5196a52927&')
+        .setDescription(`${perfil.nomePersonagem} teve sua energia restaurada! Energia restante: ${novaEnergia}.`)
+        .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL() })
+
+    await message.channel.send({ embeds: [embed] });
+    await message.delete();
+}
+export { curaEnergia };
+
+// Dano - Energia
+async function danoEnergia(message, argumentos, bancoDados) {
+    if (argumentos.length < 1 || argumentos.length > 2 || isNaN(argumentos[argumentos.length - 1])) {
+        return message.reply("Uso incorreto");
+    }
+
+    const custoEnergia = Number(argumentos[argumentos.length - 1]);
+
+    const verificarUsuario = message.mentions.users.first();
+    const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
+
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        return message.reply("Você não tem permissão para curar outros usuários.");
+    }
+
+    const perfilReferencia = bancoDados.collection('perfis').doc(usuarioId);
+    const verificarPerfil = await perfilReferencia.get();
+
+    if (!verificarPerfil.exists) {
+        return message.reply("O perfil do usuário mencionado não foi encontrado ou ainda não foi criado.");
+    }
+
+    const perfil = verificarPerfil.data();
+    const novaEnergia = Math.max(0, (perfil.energia || 0) - custoEnergia);
+
+    await perfilReferencia.update({ energia: novaEnergia });
+
+    const embed = new EmbedBuilder()
+        .setColor('#FFFF00') // Cor amarela para indicar energia
+        .setTitle('⚡ Energia Consumida')
+        .setThumbnail('https://cdn.discordapp.com/attachments/1199656699561246751/1204800802699354163/Nrg.gif?ex=65d60d2f&is=65c3982f&hm=50121562061b0828c2871e18b656bd27408d3ac1a3476e181d59019074e43941&')
+        .setDescription(`${perfil.nomePersonagem} gastou ${custoEnergia} de Energia. Energia restante: ${novaEnergia}.`)
+        .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL() }) // Adiciona o nome e a imagem do autor
+
+    await message.channel.send({ embeds: [embed] });
+    await message.delete(); // Apaga a mensagem original do usuário
+}
+export { danoEnergia };

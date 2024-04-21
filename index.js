@@ -1,6 +1,6 @@
 import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, messageLink, MessageFlags } from "discord.js";
 import * as dotenv from "dotenv";
-import { curaVida, danoVida, curaMana, danoMana } from "./utilidades/atributos.js";
+import { curaVida, danoVida, curaMana, danoMana, curaEnergia, danoEnergia } from "./utilidades/atributos.js";
 import { rolar } from "./utilidades/rolagemdedados.js";
 import { criarPerfil } from "./utilidades/criadorDePerfil.js";
 import admin from "firebase-admin";
