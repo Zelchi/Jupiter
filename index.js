@@ -1,5 +1,6 @@
-import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, messageLink } from "discord.js";
+import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, messageLink, MessageFlags } from "discord.js";
 import * as dotenv from "dotenv";
+import { curaVida, danoVida, curaMana, danoMana } from "./utilidades/atributos.js";
 import { rolar } from "./utilidades/rolagemdedados.js";
 import { criarPerfil } from "./utilidades/criadorDePerfil.js";
 import admin from "firebase-admin";
@@ -27,7 +28,6 @@ const client = new Client({
 
 client.login(process.env.TOKEN);
 
-// Registrar comandos
 const perfis = {};
 const comandos = new Map();
 
@@ -39,12 +39,10 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
     if (message.content.match("```")) return;
 
-    // Sistema de Rolagem de dados.
     const diceRollRegex = /^!(\d+d\d+)([+-]\d+)?$/i;
     const diceRollMatch = message.content.match(diceRollRegex);
 
     if (diceRollMatch) {
-        // Passa a string completa da rolagem de dados para a função rolar
         rolar(message, bancoDados, [diceRollMatch[0].slice(1)]);
         return;
     }
@@ -55,7 +53,6 @@ client.on("messageCreate", async (message) => {
         const comando = comandos.get(commandName);
         if (comando) {
             try {
-                // Verifica se o comando é uma função antes de chamar execute
                 if (typeof comando === 'function') {
                     await comando(message, args);
                 } else {
@@ -69,7 +66,6 @@ client.on("messageCreate", async (message) => {
     }
 });
 
-// Criador de perfil
 registrarComando("registrar", async (message) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
 
@@ -80,7 +76,6 @@ registrarComando("registrar", async (message) => {
     }
 });
 
-// Comando !deletarperfil // !maindelete
 registrarComando("apagar", async (message) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (verificarPerfil.exists) {
@@ -100,8 +95,24 @@ registrarComando("perfil", async (message) => {
         const perfil = verificarPerfil.data();
         const embedPerfil = new EmbedBuilder()
             .setColor(perfil.cor)
-            .setTitle(`${perfil.nomePersonagem}`)
-            .setImage(`${perfil.foto}`);
+            .setTitle(`Nome: ${perfil.nomePersonagem}`)
+            .setThumbnail(`${perfil.foto}`)
+            .addFields(
+                {
+                    name: 'Atributos Comuns', value:
+                        `❤️ Vida: ${perfil.vida || 0}/${perfil.vidaMax || 0}\n` +
+                        `☄️ Mana: ${perfil.mana || 0}/${perfil.manaMax || 0}\n` +
+                        `⚡ Energia: ${perfil.energia || 0}/${perfil.energiaMax || 0}`,
+                    inline: true,
+                },
+                {
+                    name: 'Dinheiro/Level', value:
+                        `💵 Amatinas: ${perfil.dinheiro || 0}\n` +
+                        `🎇 Astral: ${perfil.astral || 0}\n` +
+                        `🕹️ Level: ${perfil.level || 0}`,
+                    inline: true
+                },
+            )
 
         await message.channel.send({ embeds: [embedPerfil] });
     } else {
@@ -110,5 +121,90 @@ registrarComando("perfil", async (message) => {
         } else {
             message.reply('Seu perfil ainda não foi criado.')
         }
+    }
+});
+
+registrarComando("definir", async (message, argumentos) => {
+    const verificarUsuario = message.mentions.users.first();
+    const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
+
+    if (verificarUsuario && !message.member.permissions.has("ADMINISTRATOR")) {
+        return message.reply("Você não tem permissão.");
+    }
+
+    const statsArgumentos = verificarUsuario ? argumentos.slice(1) : argumentos;
+
+    if (statsArgumentos.length !== 3 || statsArgumentos.some(isNaN)) {
+        return message.reply("Uso incorreto.");
+    }
+
+    const [vida, mana, energia] = statsArgumentos.map(Number);
+
+    const verificarPerfil = await bancoDados.collection('perfis').doc(usuarioId).get();
+    if (!verificarPerfil.exists) {
+        return message.reply("O perfil ainda não foi criado!");
+    }
+    const perfilReferencia = bancoDados.collection('perfis').doc(usuarioId); // Corrigido aqui
+    await perfilReferencia.update({
+        vida: vida || 0,
+        mana: mana || 0,
+        energia: energia || 0,
+        vidaMax: vida,
+        manaMax: mana,
+        energiaMax: energia
+    });
+
+    await message.delete();
+});
+
+registrarComando("cura", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        curaVida(message, argumentos, bancoDados);
+    }
+});
+registrarComando("dano", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        danoVida(message, argumentos, bancoDados);
+    }
+});
+registrarComando("restaurar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        curaMana(message, argumentos, bancoDados);
+    }
+});
+registrarComando("canalizar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        danoMana(message, argumentos, bancoDados);
+    }
+});
+registrarComando("descansar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        curaEnergia(message, argumentos, bancoDados);
+    }
+});
+registrarComando("gastar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        danoEnergia(message, argumentos, bancoDados);
     }
 });
