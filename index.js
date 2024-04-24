@@ -222,6 +222,10 @@ registrarComando("gastar", async (message, argumentos) => {
 });
 
 registrarComando("depositar", async (message, argumentos) => {
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -240,6 +244,10 @@ registrarComando("pagar", async (message, argumentos) => {
 });
 
 registrarComando("astral+", async (message, argumentos) => {
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -249,6 +257,10 @@ registrarComando("astral+", async (message, argumentos) => {
 });
 
 registrarComando("astral-", async (message, argumentos) => {
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -258,6 +270,10 @@ registrarComando("astral-", async (message, argumentos) => {
 });
 
 registrarComando("level+", async (message, argumentos) => {
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -267,6 +283,10 @@ registrarComando("level+", async (message, argumentos) => {
 });
 
 registrarComando("level-", async (message, argumentos) => {
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');

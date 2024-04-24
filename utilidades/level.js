@@ -7,16 +7,8 @@ async function depositarLevel(message, argumentos, bancoDados) {
     }
 
     const valor = Number(argumentos[argumentos.length - 1]);
-
     const verificarUsuario = message.mentions.users.first();
     const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
-
-
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
-    }
-
     const perfilReferencia = bancoDados.collection('perfis').doc(usuarioId);
     const verificarPerfil = await perfilReferencia.get();
     const perfil = verificarPerfil.data();
@@ -48,17 +40,11 @@ async function pagarLevel(message, argumentos, bancoDados) {
     }
 
     const valor = Math.floor(Number(argumentos[argumentos.length - 1]));
-
     const verificarUsuario = message.mentions.users.first();
     const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
     const perfilReferencia = bancoDados.collection('perfis').doc(usuarioId);
     const verificarPerfil = await perfilReferencia.get();
     const perfil = verificarPerfil.data();
-
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
-    }
 
     if (!verificarPerfil.exists) {
         return message.reply("Perfil não registrado.");
