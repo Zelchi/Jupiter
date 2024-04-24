@@ -32,6 +32,7 @@ async function criarPerfil(message, bancoDados) {
 
             const perfil = {
                 cor: "#ffffff",
+                level: 0,
                 nomePersonagem: nome,
                 foto: foto,
                 numeroPerfil: 0,

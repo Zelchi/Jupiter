@@ -31,9 +31,9 @@ async function depositarLevel(message, argumentos, bancoDados) {
 
     const embed = new EmbedBuilder()
         .setColor('#ffa500')
-        .setTitle('🕹️ Level!')
+        .setTitle('🕹️ Level UP!')
         .setThumbnail('https://cdn.discordapp.com/attachments/1204870603446820945/1232710139979628629/Level_Up.gif?ex=662a7248&is=662920c8&hm=9ee35f1c033fdeabc4f8a59984c3fa15115a7f3872eab3d116f2751b5f5b5bcc&')
-        .setDescription(`${perfil.nomePersonagem} recebeu ${valor} moedas levels. Atual: ${novoValor}.`)
+        .setDescription(`${perfil.nomePersonagem} recebeu ${valor}. Atual: ${novoValor}.`)
         .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL() })
 
     await message.channel.send({ embeds: [embed] });
@@ -55,6 +55,11 @@ async function pagarLevel(message, argumentos, bancoDados) {
     const verificarPerfil = await perfilReferencia.get();
     const perfil = verificarPerfil.data();
 
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
+
     if (!verificarPerfil.exists) {
         return message.reply("Perfil não registrado.");
     }
@@ -72,7 +77,7 @@ async function pagarLevel(message, argumentos, bancoDados) {
         .setColor('#008b8b')
         .setTitle('💣 Level perdido?')
         .setThumbnail('https://cdn.discordapp.com/attachments/1204870603446820945/1204870653308706857/Morte.gif?ex=662a057d&is=6628b3fd&hm=90320922abeeae72f071594c621ce55d1a1d8c403bff02422ca028e2115a6a2e&')
-        .setDescription(`${perfil.nomePersonagem} utilizou ${valor} moedas levels. Atual: ${novoValor}.`)
+        .setDescription(`${perfil.nomePersonagem} perdeu ${valor}. Atual: ${novoValor}.`)
         .setAuthor({ name: message.author.username, iconURL: message.author.avatarURL() })
 
     await message.channel.send({ embeds: [embed] });

@@ -55,6 +55,11 @@ async function pagarAstral(message, argumentos, bancoDados) {
     const verificarPerfil = await perfilReferencia.get();
     const perfil = verificarPerfil.data();
 
+    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
+        await message.delete();
+        return
+    }
+
     if (!verificarPerfil.exists) {
         return message.reply("Perfil não registrado.");
     }
