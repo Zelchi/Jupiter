@@ -70,3 +70,5 @@ async function pagarDinheiro(message, argumentos, bancoDados) {
     await message.delete();
 };
 export { pagarDinheiro };
+
+//dasdasdasdasdsadasdasda
