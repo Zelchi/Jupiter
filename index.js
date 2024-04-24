@@ -3,6 +3,7 @@ import * as dotenv from "dotenv";
 import { curaVida, danoVida, curaMana, danoMana, curaEnergia, danoEnergia } from "./utilidades/atributos.js";
 import { rolar } from "./utilidades/rolagemdedados.js";
 import { criarPerfil } from "./utilidades/criadorDePerfil.js";
+import { depositarDinheiro, pagarDinheiro } from "./utilidades/dinheiro.js"
 import admin from "firebase-admin";
 
 dotenv.config();
@@ -14,7 +15,7 @@ admin.initializeApp({
 const bancoDados = admin.firestore();
 
 const config = {
-    prefix: "!",
+    prefix: ">",
 };
 
 const client = new Client({
@@ -39,7 +40,7 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
     if (message.content.match("```")) return;
 
-    const diceRollRegex = /^!(\d+d\d+)([+-]\d+)?$/i;
+    const diceRollRegex = new RegExp(`^${config.prefix}(\\d+d\\d+)([+-]\\d+)?$`, 'i');
     const diceRollMatch = message.content.match(diceRollRegex);
 
     if (diceRollMatch) {
@@ -65,6 +66,10 @@ client.on("messageCreate", async (message) => {
         }
     }
 });
+
+registrarComando("ping", async (message) => {
+    message.channel.send("pong")
+})
 
 registrarComando("registrar", async (message) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
@@ -107,7 +112,7 @@ registrarComando("perfil", async (message) => {
                 },
                 {
                     name: 'Dinheiro/Level', value:
-                        `💵 Amatinas: ${perfil.dinheiro || 0}\n` +
+                        `💵 Amatinas: ${perfil.amatinas || 0}\n` +
                         `🎇 Astral: ${perfil.astral || 0}\n` +
                         `🕹️ Level: ${perfil.level || 0}`,
                     inline: true
@@ -166,6 +171,7 @@ registrarComando("cura", async (message, argumentos) => {
         curaVida(message, argumentos, bancoDados);
     }
 });
+
 registrarComando("dano", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
@@ -174,6 +180,7 @@ registrarComando("dano", async (message, argumentos) => {
         danoVida(message, argumentos, bancoDados);
     }
 });
+
 registrarComando("restaurar", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
 
@@ -183,6 +190,7 @@ registrarComando("restaurar", async (message, argumentos) => {
         curaMana(message, argumentos, bancoDados);
     }
 });
+
 registrarComando("canalizar", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
@@ -191,6 +199,7 @@ registrarComando("canalizar", async (message, argumentos) => {
         danoMana(message, argumentos, bancoDados);
     }
 });
+
 registrarComando("descansar", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
 
@@ -200,11 +209,30 @@ registrarComando("descansar", async (message, argumentos) => {
         curaEnergia(message, argumentos, bancoDados);
     }
 });
+
 registrarComando("gastar", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
     } else {
         danoEnergia(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("depositar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        depositarDinheiro(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("pagar", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        pagarDinheiro(message, argumentos, bancoDados);
     }
 });
