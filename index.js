@@ -4,6 +4,8 @@ import { curaVida, danoVida, curaMana, danoMana, curaEnergia, danoEnergia } from
 import { rolar } from "./utilidades/rolagemdedados.js";
 import { criarPerfil } from "./utilidades/criadorDePerfil.js";
 import { depositarDinheiro, pagarDinheiro } from "./utilidades/dinheiro.js"
+import { depositarAstral, pagarAstral } from "./utilidades/astral.js"
+import { depositarLevel, pagarLevel } from "./utilidades/level.js"
 import admin from "firebase-admin";
 
 dotenv.config();
@@ -100,7 +102,7 @@ registrarComando("perfil", async (message) => {
         const perfil = verificarPerfil.data();
         const embedPerfil = new EmbedBuilder()
             .setColor(perfil.cor)
-            .setTitle(`Nome: ${perfil.nomePersonagem}`)
+            .setTitle(`${perfil.nomePersonagem}`)
             .setThumbnail(`${perfil.foto}`)
             .addFields(
                 {
@@ -112,7 +114,7 @@ registrarComando("perfil", async (message) => {
                 },
                 {
                     name: 'Dinheiro/Level', value:
-                        `💵 Amatinas: ${perfil.amatinas || 0}\n` +
+                        `💰 Amatinas: ${perfil.amatinas || 0}\n` +
                         `🎇 Astral: ${perfil.astral || 0}\n` +
                         `🕹️ Level: ${perfil.level || 0}`,
                     inline: true
@@ -235,4 +237,77 @@ registrarComando("pagar", async (message, argumentos) => {
     } else {
         pagarDinheiro(message, argumentos, bancoDados);
     }
+});
+
+registrarComando("astral+", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        depositarAstral(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("astral-", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        pagarAstral(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("level+", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        depositarLevel(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("level-", async (message, argumentos) => {
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        pagarLevel(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("cor", async (message, argumentos) => {
+    if (argumentos.length === 1) {
+        const novaCor = argumentos[0].trim();
+        if (!/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(novaCor)) {
+            return;
+        }
+
+        const perfilRef = bancoDados.collection('perfis').doc(message.author.id);
+        await perfilRef.update({ cor: novaCor });
+        return message.reply(`Cor do perfil alterada com sucesso para ${novaCor}.`);
+    }
+});
+
+registrarComando("ajuda", async (message) => {
+    const helpEmbed = new EmbedBuilder()
+        .setColor('#0099ff')
+        .setTitle('Lista de Comandos')
+        .addFields(
+            { name: '>ping', value: 'Responde com "pong"', inline: false },
+            { name: '>registrar', value: 'Registrar perfil', inline: false },
+            { name: '>apagar', value: 'Apagar perfil', inline: false },
+            { name: '>perfil [@Usuário]', value: 'Mostra o perfil do mencionado ou o próprio', inline: false },
+            { name: '>cor [Código Hex]', value: 'altera a cor do perfil', inline: false },
+            { name: '>definir [vida] [mana] [energia]', value: 'Define os atributos de vida, mana e energia do perfil', inline: false },
+            { name: '>cura [valor]', value: 'Cura uma quantidade de vida do perfil', inline: false },
+            { name: '>dano [valor]', value: 'Causa uma quantidade de dano à vida do perfil', inline: false },
+            { name: '>restaurar [valor]', value: 'Restaura uma quantidade de mana do perfil', inline: false },
+            { name: '>canalizar [valor]', value: 'Causa uma quantidade de dano à mana do perfil', inline: false },
+            { name: '>descansar [valor]', value: 'Restaura uma quantidade de energia do perfil', inline: false },
+            { name: '>gastar [valor]', value: 'Causa uma quantidade de dano à energia do perfil', inline: false },
+            { name: '>depositar [@Usuário] [valor]', value: 'Deposita uma quantidade de dinheiro do perfil', inline: false },
+            { name: '>pagar [valor]', value: 'Retira uma quantidade de dinheiro do perfil', inline: false },
+        );
+
+    await message.channel.send({ embeds: [helpEmbed] });
 });
