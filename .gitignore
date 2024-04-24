@@ -3,9 +3,9 @@
 /firebase.json
 /discloud.config
 /.discloudignore
-/utilidades/astral.js
-/utilidades/atributos.js
-/utilidades/criadorDePerfil.js
-/utilidades/dinheiro.js
-/utilidades/level.js
-/utilidades/rolagemdedados.js
+/.utilidades/astral.js
+/.utilidades/atributos.js
+/.utilidades/criadorDePerfil.js
+/.utilidades/dinheiro.js
+/.utilidades/level.js
+/.utilidades/rolagemdedados.js
