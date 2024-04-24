@@ -1,9 +1,22 @@
+// Captura exceções não tratadas para evitar que o bot desligue
+process.on('uncaughtException', (error) => {
+    console.error('Exceção não tratada capturada:', error);
+    // Aqui você pode decidir se quer desligar o bot ou deixá-lo rodando.
+    // É recomendável reiniciar o bot de forma controlada ou notificar alguém sobre o erro.
+});
+
+// Captura rejeições de promessas não tratadas para evitar que o bot desligue
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Rejeição de promessa não tratada capturada:', promise, 'razão:', reason);
+    // Tratamento semelhante ao de exceções não tratadas.
+});
+
 import { Client, GatewayIntentBits, EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, messageLink, MessageFlags } from "discord.js";
 import * as dotenv from "dotenv";
 import { curaVida, danoVida, curaMana, danoMana, curaEnergia, danoEnergia } from "./utilidades/atributos.js";
 import { rolar } from "./utilidades/rolagemdedados.js";
 import { criarPerfil } from "./utilidades/criadorDePerfil.js";
-import { depositarDinheiro, pagarDinheiro } from "./utilidades/dinheiro.js"
+import { depositarDinheiro, pagarDinheiro, tirarDinheiro } from "./utilidades/dinheiro.js"
 import { depositarAstral, pagarAstral } from "./utilidades/astral.js"
 import { depositarLevel, pagarLevel } from "./utilidades/level.js"
 import admin from "firebase-admin";
@@ -132,12 +145,16 @@ registrarComando("perfil", async (message) => {
 });
 
 registrarComando("definir", async (message, argumentos) => {
+
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
+    }
+
     const verificarUsuario = message.mentions.users.first();
     const usuarioId = verificarUsuario ? verificarUsuario.id : message.author.id;
-
-    if (verificarUsuario && !message.member.permissions.has("ADMINISTRATOR")) {
-        return message.reply("Você não tem permissão.");
-    }
 
     const statsArgumentos = verificarUsuario ? argumentos.slice(1) : argumentos;
 
@@ -221,19 +238,6 @@ registrarComando("gastar", async (message, argumentos) => {
     }
 });
 
-registrarComando("depositar", async (message, argumentos) => {
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
-    }
-    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
-    if (!verificarPerfil.exists) {
-        message.reply('O Perfil não foi criado!');
-    } else {
-        depositarDinheiro(message, argumentos, bancoDados);
-    }
-});
-
 registrarComando("pagar", async (message, argumentos) => {
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
@@ -243,11 +247,46 @@ registrarComando("pagar", async (message, argumentos) => {
     }
 });
 
-registrarComando("astral+", async (message, argumentos) => {
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
+registrarComando("dinheiro+", async (message, argumentos) => {
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
     }
+
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        depositarDinheiro(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("dinheiro-", async (message, argumentos) => {
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
+    }
+
+    const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
+    if (!verificarPerfil.exists) {
+        message.reply('O Perfil não foi criado!');
+    } else {
+        tirarDinheiro(message, argumentos, bancoDados);
+    }
+});
+
+registrarComando("astral+", async (message, argumentos) => {
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
+    }
+
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -257,10 +296,13 @@ registrarComando("astral+", async (message, argumentos) => {
 });
 
 registrarComando("astral-", async (message, argumentos) => {
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
     }
+
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -270,10 +312,19 @@ registrarComando("astral-", async (message, argumentos) => {
 });
 
 registrarComando("level+", async (message, argumentos) => {
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
     }
+
+    // Verificar se o argumento é um número e se não é negativo
+    if (isNaN(argumentos) || argumentos < 0) {
+        message.reply('Por favor, forneça um número válido e positivo.');
+        return;
+    }
+
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -283,10 +334,13 @@ registrarComando("level+", async (message, argumentos) => {
 });
 
 registrarComando("level-", async (message, argumentos) => {
-    if (argumentos.length === 2 && !message.member.permissions.has("ADMINISTRATOR")) {
-        await message.delete();
-        return
+    const usuarioEspecificoID = "401899167196250122";
+
+    if (message.author.id !== usuarioEspecificoID) {
+        message.reply('Você não tem permissão para usar este comando.');
+        return;
     }
+
     const verificarPerfil = await bancoDados.collection('perfis').doc(message.author.id).get();
     if (!verificarPerfil.exists) {
         message.reply('O Perfil não foi criado!');
@@ -326,8 +380,18 @@ registrarComando("ajuda", async (message) => {
             { name: '>descansar [valor]', value: 'Restaura uma quantidade de energia do perfil', inline: false },
             { name: '>gastar [valor]', value: 'Causa uma quantidade de dano à energia do perfil', inline: false },
             { name: '>depositar [@Usuário] [valor]', value: 'Deposita uma quantidade de dinheiro do perfil', inline: false },
-            { name: '>pagar [valor]', value: 'Retira uma quantidade de dinheiro do perfil', inline: false },
+            { name: '>pagar [valor]', value: 'Usado para utilizar o dinheiro', inline: false },
         );
 
     await message.channel.send({ embeds: [helpEmbed] });
 });
+
+// registrarComando("inventario", async (message, argumentos) => {
+//     const verificarItem = await bancoDados.collection('inventario').doc(message.author.id).get();
+
+//     if (verificarItem.name.exists) {
+//         message.reply('Item já adicionado');
+//     } else {
+//         criarPerfil(message, argumentos, bancoDados);
+//     }
+// });
