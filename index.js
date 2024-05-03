@@ -385,13 +385,3 @@ registrarComando("ajuda", async (message) => {
 
     await message.channel.send({ embeds: [helpEmbed] });
 });
-
-// registrarComando("inventario", async (message, argumentos) => {
-//     const verificarItem = await bancoDados.collection('inventario').doc(message.author.id).get();
-
-//     if (verificarItem.name.exists) {
-//         message.reply('Item já adicionado');
-//     } else {
-//         criarPerfil(message, argumentos, bancoDados);
-//     }
-// });
